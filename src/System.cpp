@@ -32,6 +32,8 @@ System::~System()
     mViewerThread->join();
     delete mpViewer;
     delete mpTracker;
+
+    delete mViewerThread;
 }
 
 void System::TrackImage(const cv::Mat &ImgRGB, const cv::Mat &ImgDepth, const double TimeStamp)

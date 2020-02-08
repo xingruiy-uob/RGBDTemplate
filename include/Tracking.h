@@ -3,7 +3,9 @@
 #include <Eigen/Core>
 #include <opencv2/opencv.hpp>
 
+#include "Frame.h"
 #include "Viewer.h"
+#include "KeyFrame.h"
 
 namespace SLAM
 {

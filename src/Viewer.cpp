@@ -33,7 +33,7 @@ void Viewer::Run()
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     pangolin::CreatePanel("menu").SetBounds(0.0, 1.0, 0.0, pangolin::Attach::Pix(175));
-    pangolin::Var<bool> menuResetSystem("menu.Reset", true, false);
+    pangolin::Var<bool> menuResetSystem("menu.Reset", false, false);
 
     // Define Camera Render Object (for view / scene browsing)
     pangolin::OpenGlRenderState s_cam(

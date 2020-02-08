@@ -11,6 +11,8 @@ add_library(${PROJECT_NAME} SHARED "")
 
 target_sources(${PROJECT_NAME}
 PRIVATE
+    src/Frame.cpp
+    src/KeyFrame.cpp
     src/Viewer.cpp
     src/System.cpp
     src/Tracking.cpp
