@@ -1,0 +1,17 @@
+%YAML:1.0
+
+System.EnableViewer: 1
+System.ReverseRGB: 0
+System.DepthScale: 1000
+
+Tracking.Width: 640
+Tracking.Height: 480
+Tracking.Fx: 580.0
+Tracking.Fy: 580.0
+Tracking.Cx: 320.0
+Tracking.Cy: 240.0
+Tracking.PyramidLevel: 5
+
+Viewer.Width: 1920
+Viewer.Height: 1080
+Viewer.PointSize: 5

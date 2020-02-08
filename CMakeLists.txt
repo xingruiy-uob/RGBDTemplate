@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 2.8)
 project(ProjectTemplate CXX)
 
+find_package(Pangolin 0.5 REQUIRED)
 find_package(OpenCV 3.4 REQUIRED)
 find_package(Eigen3 3.3 REQUIRED)
 
@@ -10,7 +11,9 @@ add_library(${PROJECT_NAME} SHARED "")
 
 target_sources(${PROJECT_NAME}
 PRIVATE
+    src/Viewer.cpp
     src/System.cpp
+    src/Tracking.cpp
 )
 
 target_compile_features(${PROJECT_NAME}
@@ -28,6 +31,7 @@ target_link_libraries(${PROJECT_NAME}
 PUBLIC
     Eigen3::Eigen
     ${OpenCV_LIBRARIES}
+    ${Pangolin_LIBRARIES}
 )
 
 # Build Examples

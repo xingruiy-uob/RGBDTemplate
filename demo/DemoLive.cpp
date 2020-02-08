@@ -13,14 +13,10 @@ int main(int argc, char **argv)
 
     cv::Mat ImDepth, ImRGB;
 
-    while (true)
+    while (slam.IsAlive())
     {
         if (cam.TryFetchingImages(ImDepth, ImRGB))
         {
-            cv::imshow("RGB", ImRGB);
-            cv::imshow("Depth", ImDepth);
-            cv::waitKey(1);
-
             slam.TrackImage(ImRGB, ImDepth, 0);
         }
     }
