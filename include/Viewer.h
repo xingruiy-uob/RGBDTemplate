@@ -24,6 +24,7 @@ public:
     void SetCameraPose(const Eigen::Matrix4d &Tcw);
 
 private:
+    void DrawTextures();
     void DrawCameraFrustum();
 
     System *mpSystem;

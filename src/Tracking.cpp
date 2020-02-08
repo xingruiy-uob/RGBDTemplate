@@ -28,6 +28,7 @@ Tracking::Tracking(const std::string &strSettingsPath, Map *pMap, Viewer *pViewe
 
 void Tracking::Reset()
 {
+    mCurrentState = TrackingState::NotInitiated;
 }
 
 void Tracking::TrackImage(const cv::Mat &ImgDepth, const cv::Mat &ImgGray, const double TimeStamp)

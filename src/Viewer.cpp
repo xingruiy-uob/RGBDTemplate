@@ -17,6 +17,9 @@ Viewer::Viewer(const std::string &strSettingsPath, System *pSystem) : mpSystem(p
         mCameraMatrix(1, 1) = (double)settingsFile["Tracking.Fy"];
         mCameraMatrix(0, 2) = (double)settingsFile["Tracking.Cx"];
         mCameraMatrix(1, 2) = (double)settingsFile["Tracking.Cy"];
+
+        pangolin::CreateWindowAndBind("SLAM", mWidth, mHeight);
+        pangolin::GetBoundWindow()->RemoveCurrent();
     }
     else
     {
@@ -32,7 +35,26 @@ void Viewer::Reset()
 
 void Viewer::Run()
 {
-    pangolin::CreateWindowAndBind("SLAM", mWidth, mHeight);
+    pangolin::BindToContext("SLAM");
+
+    mTexRGB.Reinitialise(
+        640, 480,
+        GL_RGB,
+        true,
+        0,
+        GL_RGB,
+        GL_UNSIGNED_BYTE,
+        NULL);
+
+    mTexDepth.Reinitialise(
+        640, 480,
+        GL_LUMINANCE,
+        true,
+        0,
+        GL_LUMINANCE,
+        GL_FLOAT,
+        NULL);
+
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -61,24 +83,6 @@ void Viewer::Run()
     pangolin::CreatePanel("menu").SetBounds(0, 1, 0, MenuDividerLeft);
     pangolin::Var<bool> varReset = pangolin::Var<bool>("menu.Reset", false, false);
 
-    mTexRGB.Reinitialise(
-        640, 480,
-        GL_RGB,
-        true,
-        0,
-        GL_RGB,
-        GL_UNSIGNED_BYTE,
-        NULL);
-
-    mTexDepth.Reinitialise(
-        640, 480,
-        GL_LUMINANCE,
-        true,
-        0,
-        GL_LUMINANCE,
-        GL_FLOAT,
-        NULL);
-
     while (!pangolin::ShouldQuit())
     {
         glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
@@ -87,15 +91,7 @@ void Viewer::Run()
         if (pangolin::Pushed(varReset))
             mpSystem->Reset();
 
-        mpRGBView->Activate();
-        if (!mImgRGB.empty())
-            mTexRGB.Upload(mImgRGB.data, GL_RGB, GL_UNSIGNED_BYTE);
-        mTexRGB.RenderToViewportFlipY();
-
-        mpDepthView->Activate();
-        if (!mImgDepth.empty())
-            mTexDepth.Upload(mImgDepth.data, GL_LUMINANCE, GL_FLOAT);
-        mTexDepth.RenderToViewportFlipY();
+        DrawTextures();
 
         mpMapView->Activate(RenderState);
         DrawCameraFrustum();
@@ -109,6 +105,19 @@ void Viewer::Run()
 void Viewer::SetCameraPose(const Eigen::Matrix4d &Tcw)
 {
     mTcw = Tcw;
+}
+
+void Viewer::DrawTextures()
+{
+    mpRGBView->Activate();
+    if (!mImgRGB.empty())
+        mTexRGB.Upload(mImgRGB.data, GL_RGB, GL_UNSIGNED_BYTE);
+    mTexRGB.RenderToViewportFlipY();
+
+    mpDepthView->Activate();
+    if (!mImgDepth.empty())
+        mTexDepth.Upload(mImgDepth.data, GL_LUMINANCE, GL_FLOAT);
+    mTexDepth.RenderToViewportFlipY();
 }
 
 void Viewer::DrawCameraFrustum()

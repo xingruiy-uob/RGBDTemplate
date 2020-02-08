@@ -18,7 +18,7 @@ mkdir -p build && cd build
 cmake .. -DCMAKE_BUILD_TYPE=RELEASE
 make -j
 
-echo "building NEW_SLAM..."
+echo "building SLAM..."
 
 cd ../../../
 mkdir -p build && cd build
