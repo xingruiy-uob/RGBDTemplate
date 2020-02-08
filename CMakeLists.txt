@@ -11,6 +11,7 @@ add_library(${PROJECT_NAME} SHARED "")
 
 target_sources(${PROJECT_NAME}
 PRIVATE
+    src/Map.cpp
     src/Frame.cpp
     src/KeyFrame.cpp
     src/Viewer.cpp

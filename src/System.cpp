@@ -18,7 +18,8 @@ System::System(const std::string &strSettingsPath) : mbIsAlive(true), mbReverseR
             mViewerThread = new std::thread(&Viewer::Run, mpViewer);
         }
 
-        mpTracker = new Tracking(strSettingsPath, mpViewer);
+        mpMap = new Map();
+        mpTracker = new Tracking(strSettingsPath, mpMap, mpViewer);
     }
     else
     {
@@ -41,14 +42,20 @@ void System::TrackImage(const cv::Mat &ImgRGB, const cv::Mat &ImgDepth, const do
     cv::Mat ImgGray;
     cv::Mat ImgDepthFloat;
 
+    ImgDepth.convertTo(ImgDepthFloat, CV_32FC1, mDepthScale);
+
     if (mbReverseRGB)
         cv::cvtColor(ImgRGB, ImgGray, cv::COLOR_BGR2GRAY);
     else
         cv::cvtColor(ImgRGB, ImgGray, cv::COLOR_RGB2GRAY);
 
-    ImgDepth.convertTo(ImgDepthFloat, CV_32FC1, mDepthScale);
-
     mpTracker->TrackImage(ImgDepthFloat, ImgGray, TimeStamp);
+
+    if (mpViewer)
+    {
+        mpViewer->SetImageRGB(ImgRGB);
+        mpViewer->SetImageDepth(ImgDepthFloat);
+    }
 }
 
 bool System::IsAlive() const
@@ -64,6 +71,10 @@ void System::Kill()
 
 void System::Reset()
 {
+    if (mpViewer)
+        mpViewer->Reset();
+    mpTracker->Reset();
+
     printf("Reset Complete.\n");
 }
 

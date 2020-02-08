@@ -25,6 +25,7 @@ public:
 
 private:
     Viewer *mpViewer;
+    Map *mpMap;
     Tracking *mpTracker;
 
     std::thread *mViewerThread;

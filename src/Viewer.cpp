@@ -25,6 +25,11 @@ Viewer::Viewer(const std::string &strSettingsPath, System *pSystem) : mpSystem(p
     }
 }
 
+void Viewer::Reset()
+{
+    mTcw = Eigen::Matrix4d::Identity();
+}
+
 void Viewer::Run()
 {
     pangolin::CreateWindowAndBind("SLAM", mWidth, mHeight);
@@ -32,29 +37,67 @@ void Viewer::Run()
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    pangolin::CreatePanel("menu").SetBounds(0.0, 1.0, 0.0, pangolin::Attach::Pix(175));
-    pangolin::Var<bool> menuResetSystem("menu.Reset", false, false);
-
-    // Define Camera Render Object (for view / scene browsing)
-    pangolin::OpenGlRenderState s_cam(
+    auto RenderState = pangolin::OpenGlRenderState(
         pangolin::ProjectionMatrix(1024, 768, 500, 500, 512, 389, 0.1, 1000),
-        pangolin::ModelViewLookAt(0, 0, -1, 0, 0, 0, 0.0, -1.0, 0.0));
+        pangolin::ModelViewLookAtRDF(0, 0, 0, 0, 0, -1, 0, 1, 0));
 
-    // Add named OpenGL viewport to window and provide 3D Handler
-    pangolin::View &d_cam = pangolin::CreateDisplay()
-                                .SetBounds(0.0, 1.0, pangolin::Attach::Pix(175), 1.0, -1024.0f / 768.0f)
-                                .SetHandler(new pangolin::Handler3D(s_cam));
+    auto MenuDividerLeft = pangolin::Attach::Pix(200);
+    float RightSideBarDividerLeft = 0.75f;
+
+    mpMapView = &pangolin::Display("Map");
+    mpMapView->SetBounds(0, 1, MenuDividerLeft, RightSideBarDividerLeft)
+        .SetHandler(new pangolin::Handler3D(RenderState));
+    mpRightBar = &pangolin::Display("RightBar");
+    mpRightBar->SetBounds(0, 1, RightSideBarDividerLeft, 1);
+
+    mpRGBView = &pangolin::Display("RGB");
+    mpRGBView->SetBounds(0, 0.33, 0, 1);
+    mpDepthView = &pangolin::Display("Depth");
+    mpDepthView->SetBounds(0.33, 0.66, 0, 1);
+
+    mpRightBar->AddDisplay(*mpRGBView);
+    mpRightBar->AddDisplay(*mpDepthView);
+
+    pangolin::CreatePanel("menu").SetBounds(0, 1, 0, MenuDividerLeft);
+    pangolin::Var<bool> varReset = pangolin::Var<bool>("menu.Reset", false, false);
+
+    mTexRGB.Reinitialise(
+        640, 480,
+        GL_RGB,
+        true,
+        0,
+        GL_RGB,
+        GL_UNSIGNED_BYTE,
+        NULL);
+
+    mTexDepth.Reinitialise(
+        640, 480,
+        GL_LUMINANCE,
+        true,
+        0,
+        GL_LUMINANCE,
+        GL_FLOAT,
+        NULL);
 
     while (!pangolin::ShouldQuit())
     {
+        glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        if (pangolin::Pushed(menuResetSystem))
+        if (pangolin::Pushed(varReset))
             mpSystem->Reset();
 
-        d_cam.Activate(s_cam);
-        glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+        mpRGBView->Activate();
+        if (!mImgRGB.empty())
+            mTexRGB.Upload(mImgRGB.data, GL_RGB, GL_UNSIGNED_BYTE);
+        mTexRGB.RenderToViewportFlipY();
 
+        mpDepthView->Activate();
+        if (!mImgDepth.empty())
+            mTexDepth.Upload(mImgDepth.data, GL_LUMINANCE, GL_FLOAT);
+        mTexDepth.RenderToViewportFlipY();
+
+        mpMapView->Activate(RenderState);
         DrawCameraFrustum();
 
         pangolin::FinishFrame();
@@ -72,6 +115,17 @@ void Viewer::DrawCameraFrustum()
 {
     glColor3f(1.0, 0.0, 0.0);
     pangolin::glDrawFrustum<double>(mCameraMatrix.inverse(), 640, 480, mTcw, 0.1);
+    glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+}
+
+void Viewer::SetImageRGB(const cv::Mat &ImgRGB)
+{
+    mImgRGB = ImgRGB;
+}
+
+void Viewer::SetImageDepth(const cv::Mat &ImgDepth)
+{
+    mImgDepth = ImgDepth;
 }
 
 } // namespace SLAM

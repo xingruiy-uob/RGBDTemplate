@@ -3,7 +3,8 @@
 namespace SLAM
 {
 
-Tracking::Tracking(const std::string &strSettingsPath, Viewer *pViewer) : mpViewer(pViewer)
+Tracking::Tracking(const std::string &strSettingsPath, Map *pMap, Viewer *pViewer)
+    : mpMap(pMap), mpViewer(pViewer)
 {
     cv::FileStorage settingsFile(strSettingsPath, cv::FileStorage::READ);
 
@@ -25,17 +26,57 @@ Tracking::Tracking(const std::string &strSettingsPath, Viewer *pViewer) : mpView
     }
 }
 
+void Tracking::Reset()
+{
+}
+
 void Tracking::TrackImage(const cv::Mat &ImgDepth, const cv::Mat &ImgGray, const double TimeStamp)
 {
-    cv::imshow("Gray", ImgGray);
-    cv::imshow("Depth", ImgDepth);
-    cv::waitKey(1);
+    switch (mCurrentState)
+    {
+    case TrackingState::NotInitiated:
+    {
+        Initialization();
+        break;
+    }
+    case TrackingState::OK:
+    {
+        bool bOK = TrackWithReferenceKF();
+
+        if (!bOK)
+            mCurrentState = TrackingState::Lost;
+        break;
+    }
+
+    case TrackingState::Lost:
+    {
+        bool bOK = Relocalization();
+        break;
+    }
+    }
 
     if (mpViewer)
     {
         auto Tcw = Eigen::Matrix4d::Identity();
         mpViewer->SetCameraPose(Tcw);
     }
+}
+
+void Tracking::Initialization()
+{
+    mCurrentState = TrackingState::OK;
+}
+
+bool Tracking::Relocalization()
+{
+}
+
+bool Tracking::TrackWithLastFrame()
+{
+}
+
+bool Tracking::TrackWithReferenceKF()
+{
 }
 
 } // namespace SLAM
